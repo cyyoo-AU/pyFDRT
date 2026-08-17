@@ -14,10 +14,12 @@ this distribution. `README.md` says how to obtain them.
   wholesale, so a fix committed here is overwritten by the next one and never
   reaches the source it was meant to fix. Send it upstream instead — the
   contact address is in `README.md`.
-- **Do not merge or pull between this repository and an upstream clone.** The
-  two share ancestry, so Git will attempt it and silently add files that never
-  existed at the merge base. Releases are produced by replacing listed paths,
-  not by merging.
+- **Do not merge or pull between this repository and an upstream clone.** Git
+  refuses one anyway — the two histories are unrelated — and that refusal is a
+  guard rather than an obstacle, so do not reach for
+  `--allow-unrelated-histories` to get past it. A merge adds files that this
+  repository deliberately does not carry. Releases are produced by replacing
+  listed paths, not by merging.
 - **Do not add files.** The file count is one of the release checks; an extra
   file fails it.
 - **Nothing can be validated here.** There is no test suite and no CI in this
