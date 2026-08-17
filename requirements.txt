@@ -1,0 +1,18 @@
+# Dependency single source of truth is pyproject.toml.
+#
+# This file installs the project itself in editable mode, so `pyfdrt` becomes
+# importable without any PYTHONPATH wiring, and pulls in the runtime, GUI and
+# test dependencies declared there. Running
+#
+#   pip install -r requirements.txt
+#
+# is therefore equivalent to:
+#
+#   pip install -e ".[dev,gui]"
+#
+# Do not pin package versions here — declare them in pyproject.toml instead,
+# otherwise the two files drift apart.
+-e .[dev,gui]
+
+# Benchmark extras (see tests/benchmarks/README.md):
+# pyDRTtools cvxopt scikit-learn PyQt5 pyimpspec

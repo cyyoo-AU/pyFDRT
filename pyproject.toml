@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyfdrt"
+version = "0.1.0"
+description = "Fourier-transform Distribution of Relaxation Times (DRT) analysis for Electrochemical Impedance Spectroscopy"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Chung-Yul Yoo" },
+    { name = "Jaeku Park" },
+    { name = "Jeongjin Kim" },
+]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "matplotlib>=3.7.0",
+]
+
+[project.optional-dependencies]
+gui = ["PyQt6>=6.5.0"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# Makes a bare `pytest` work on any platform without an editable install,
+# which is what the Windows Native validation stage of the development
+# environment guide runs. Paths are resolved
+# relative to this file, so the suite is invariant to the current directory.
+# DRTAnalyzer now lives in the package (pyfdrt.pipeline), so only 'src' is
+# needed; the regression suite no longer reaches into 'scripts'.
+pythonpath = ["src"]
+testpaths = ["tests"]
+# Enforce a coverage floor on the pyfdrt package so coverage cannot silently
+# regress (task #23). The floor is set just below the current level to guard
+# against regression without forcing new tests; see the golden regression
+# protocol, section 5, for the rationale.
+# A bare `pytest` (the Windows Native stage) computes coverage and fails under
+# the floor. Running a subset of tests will under-report coverage; pass
+# `--no-cov` for a partial run.
+addopts = "--cov=pyfdrt --cov-report=term-missing --cov-fail-under=94"

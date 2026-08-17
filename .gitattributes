@@ -1,0 +1,5 @@
+# Measured artifacts: preserve bytes exactly on every platform.
+# A measured spectrum IS the input to the analysis; its bytes must not vary by
+# checkout. Use -text (never convert) rather than eol=lf, so the
+# already-committed bytes are preserved, not rewritten.
+Data/** -text
