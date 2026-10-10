@@ -64,7 +64,13 @@ whitespace- or comma-delimited text, with or without a header, in `.txt`,
 `.csv` or `.dat`; ZView `.z` files are also read. Frequencies must be
 monotonic.
 
-`Data/EIS_RRQRQ_boukamp2016.txt` is included as a worked example.
+`Data/EIS_RRQRQ_boukamp2016.txt` is included as a worked example. It is a
+**synthetic** spectrum computed from the `R1(R2·CPE1)(R3·CPE2)` parameter set
+of B. A. Boukamp, *J. Phys. Energy* **2020**, 2, 042001 — the `2016` in the
+filename is not the year of that paper and is kept only because the
+documentation and the regression goldens refer to the file by that name.
+[`Data/README.md`](Data/README.md) carries the parameters and the agreement
+with them.
 
 ## Documentation
 
