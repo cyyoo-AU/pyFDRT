@@ -1,13 +1,42 @@
 import os
 import glob
 import argparse
+import sys
 
 from drt_pipeline import DRTAnalyzer
 from pyfdrt.io.drt_exporter import export_results_to_excel
 from pyfdrt.io.drt_plotter import save_circuit_diagram, save_drt_plots
 
 
+def _make_output_printable():
+    """Let the analysis log reach a console that cannot encode it (task #161).
+
+    The log is written for people and says `Ohm`, `<=` and `x` with the real
+    characters. Python encodes stdout with whatever the console announces, so
+    on a Windows console at cp1252 or cp949 the first such line raises
+    UnicodeEncodeError. In this script that lands in the per-file handler and
+    every file is reported as failed: a legible character in a progress
+    message would have stopped the analysis.
+
+    UTF-8 first, so a console that can show the characters does. Where the
+    stream cannot be reconfigured, `errors='replace'` on the existing encoding
+    keeps the run alive and degrades one character instead.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding='utf-8', errors='replace')
+        except (ValueError, OSError):
+            try:
+                reconfigure(errors='replace')
+            except (ValueError, OSError):
+                pass
+
+
 def main():
+    _make_output_printable()
     parser = argparse.ArgumentParser(description="Batch analysis of EIS data files using pyFDRT pipeline.")
     parser.add_argument("--input_dir", type=str, default="Data", help="Directory containing EIS data files.")
     parser.add_argument("--output_dir", type=str, default="Results", help="Directory to save output files.")
