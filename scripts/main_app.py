@@ -45,6 +45,7 @@ from drt_pipeline import DRTAnalyzer
 from pyfdrt.io.drt_exporter import export_results_to_excel, ExcelExportError
 # Shared with the batch plotter so both renderings make the same aspect call.
 from pyfdrt.io.drt_plotter import draw_analysis_panels, draw_raw_data_panels
+from pyfdrt.io.circuit_cdc import circuit_cdc
 from pyfdrt.io.reference_spectrum import (reference_spectrum_summary,
                                           reference_spectrum_text)
 from pyfdrt.pipeline_config import (
@@ -67,10 +68,12 @@ ICON_PATH   = os.path.join(ASSETS_DIR, 'pyFDRT_icon.ico')
 def _is_release_build() -> bool:
     """True when this is a packaged build rather than a source checkout.
 
-    A frozen bundle (PyInstaller and friends) is the distribution case: the
-    log pane is hidden and the log goes to a file instead. PYFDRT_RELEASE
-    overrides either way, so the release layout can be exercised from source
-    (=1) and a bundle can be debugged with the pane on (=0).
+    A frozen bundle (PyInstaller and friends) is the distribution case. What
+    it still changes, since task #133 restored the log pane everywhere: a
+    failure also raises a modal, and the window may shrink to fit its controls
+    rather than only grow. PYFDRT_RELEASE overrides the detection either way,
+    so the release layout can be exercised from a source checkout (=1) and a
+    bundle can be run as a source build would (=0).
     """
     env = os.environ.get('PYFDRT_RELEASE')
     if env is not None:
@@ -247,7 +250,7 @@ class DRTApp(QMainWindow):
         # already has somewhere to go.
         self._release  = _is_release_build()
         self._file_log = _FileLog()
-        self.log_text  = None          # created only outside release builds
+        self.log_text  = None          # the pane; built in initUI
 
         self.raw_data  = None
         self.optimizer = None
@@ -258,6 +261,7 @@ class DRTApp(QMainWindow):
         # Manual diffusion tail-cut (tau in seconds) set by clicking a data
         # point in tail-cut mode; None -> automatic detection.
         self.manual_tail_cut_tau = None
+        self._last_L_val = 0.0
 
         self.initUI()
         if self._file_log.path:
@@ -673,18 +677,15 @@ class DRTApp(QMainWindow):
         control_layout.addWidget(self.btn_export)
 
         # System log
-        # The log pane is a development affordance: a release build hides it
-        # and keeps the same lines in the per-day file instead (_FileLog).
-        if self._release:
-            # The log pane was the only widget that stretched, so without it
-            # the layout spreads the rest down the column. Absorb the slack at
-            # the bottom instead and keep the controls packed at the top.
-            control_layout.addStretch(1)
-        else:
-            control_layout.addWidget(QLabel("pyFDRT Log:"))
-            self.log_text = QTextEdit()
-            self.log_text.setReadOnly(True)
-            control_layout.addWidget(self.log_text)
+        # Shown in every build (task #133). Task #111 hid it in a release
+        # build and kept the lines in the per-day file instead; the file is
+        # still written, because it is what survives a crash and reads as one
+        # transcript across a day's sessions - but a run that narrates itself
+        # is worth more on screen than the vertical space it costs.
+        control_layout.addWidget(QLabel("pyFDRT Log:"))
+        self.log_text = QTextEdit()
+        self.log_text.setReadOnly(True)
+        control_layout.addWidget(self.log_text)
 
         # Wrap the control column in a scroll area. Stacked, the three stage
         # groups plus the log are ~1150 px tall, and as a plain child widget
@@ -867,8 +868,11 @@ class DRTApp(QMainWindow):
             self.alert(f"-> [Error] Re-deconvolution failed: {str(e)}")
 
     def log(self, message):
-        """Record a message: always to the per-day file, and to the pane when
-        one exists (source runs; a release build has none)."""
+        """Record a message: to the per-day file and to the pane.
+
+        The pane is guarded because ``log`` is reachable before ``initUI``
+        has built it, not because a build might lack one.
+        """
         self._file_log.write(message)
         if self.log_text is not None:
             self.log_text.append(message)
@@ -879,8 +883,14 @@ class DRTApp(QMainWindow):
 
     def alert(self, message):
         """Report a failure. Logged either way; in a release build it also
-        gets a dialog, because with the pane hidden a logged-only error is
-        invisible and the run just appears to do nothing."""
+        gets a dialog.
+
+        The dialog was added when the release build had no log pane (task
+        #111). It survives the pane's return (task #133) on its own merit:
+        someone running a distributed build is not watching a log pane, and a
+        modal is the one channel a failure cannot slip past. It also names the
+        log file, which is where the detail is.
+        """
         self.log(message)
         if self._release:
             where = (f"\n\nLog file:\n{self._file_log.path}"
@@ -1083,6 +1093,9 @@ class DRTApp(QMainWindow):
             # Run summary strip (task #79) - one line, everything at a glance.
             n_pk = len(self.results.get('Peaks', []))
             L_val = res.get('L_val', 0.0)
+            # Kept for the Excel export, which receives the optimizer and the
+            # results but not the pipeline's own output, where L_val lives.
+            self._last_L_val = L_val
             L_s = f"L={L_val:.3g} H" if L_val else "L=0"
             lam_s = (f"λ={res['lambda_reg']:.4g} "
                      f"({'auto' if cfg.lambda_mode is LambdaMode.AUTO else 'manual'})")
@@ -1113,8 +1126,9 @@ class DRTApp(QMainWindow):
             # of a dedicated strip: the log keeps the history of every run and
             # auto-scrolls, so the latest summary is still the last thing on
             # screen while one widget row of panel height is returned.
+            cdc = circuit_cdc(self.results, L_val)
             self.log(
-                f"✓ {n_pk} peak{'s' if n_pk != 1 else ''} · {L_s} · {lam_s} · "
+                f"✓ {n_pk} peak{'s' if n_pk != 1 else ''} · {cdc} · {L_s} · {lam_s} · "
                 f"{ext_s} · {wb_s} · {rb_s} · {kk_s}")
 
             self.update_plots()
@@ -1146,7 +1160,9 @@ class DRTApp(QMainWindow):
         fname, _ = QFileDialog.getSaveFileName(self, 'Save Results', default_path, "Excel Files (*.xlsx)")
         if fname:
             try:
-                export_results_to_excel(fname, self.optimizer, self.results, logger=self.log)
+                export_results_to_excel(fname, self.optimizer, self.results,
+                                        logger=self.log,
+                                        inductance=self._last_L_val)
             except ExcelExportError as e:
                 # The exporter already logged the underlying error; catch it here
                 # so a write failure is reported to the user instead of escaping

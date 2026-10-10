@@ -15,10 +15,21 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "numpy>=1.24.0",
-    "scipy>=1.10.0",
+    # Upper bounds are normative, not caution: drt-conformance.md 3.2 bounds
+    # the golden-generating platform by these versions, because naming a
+    # platform does not stop an ordinary install from leaving the measured set.
+    # numpy 2.5 with scipy 1.18 moves base_drt by 1.1e-02 against rtol = 1e-5
+    # on RRC_simulation; either alone is fine, which is why both are capped.
+    # Raising a cap means re-measuring the table in 3.2 first.
+    "numpy>=1.24.0,<2.5",
+    "scipy>=1.10.0,<1.18",
     "pandas>=2.0.0",
     "openpyxl>=3.1.0",
+    # Declared because the Circuit sheet embeds an image and openpyxl
+    # needs Pillow to do it while not declaring Pillow itself. It arrives
+    # today only via matplotlib; relying on that would make a matplotlib
+    # change break Excel export silently (drt-io.md 5.5).
+    "pillow>=9",
     "matplotlib>=3.7.0",
 ]
 

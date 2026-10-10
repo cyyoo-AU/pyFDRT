@@ -218,11 +218,156 @@ restored both:
 A cut that would leave too few points is rejected and automatic detection is
 restored, rather than the run proceeding on an unusable remainder.
 
+### 4.2 The run summary, token by token
+
+The summary line that closes a run is the densest thing the program shows:
+
+```
+✓ 2 peaks · R(RQ)(RQ) · L=0 · λ=1.301 (auto) · ext=LINEAR · Warburg: none · Rb: 100% · KK: PASS (0.02%)
+```
+
+Most spectra only ever show one form of each token, so the alternatives below
+are easy to meet for the first time on the one measurement that matters. Every
+form the program can print is listed here. In the browser build each token also
+explains itself on hover, and the **?** button opens the same text as a list.
+
+| Token | Form | Meaning, and when you see it |
+|---|---|---|
+| **peaks** | `2 peaks` | Relaxation processes resolved inside the measured window. The count comes from the model-selection criterion (§3.2), not from a threshold. Singular for one. |
+| **circuit** | `R(RQ)(RQ)` | The extracted circuit in Boukamp circuit-description code. Series elements are written in sequence; parentheses enclose a parallel pair. `R` is the series resistance, and each `(RQ)` is one relaxation — a resistor in parallel with a constant-phase element. |
+| | `LR(RQ)(RQ)` | A leading `L` is the series inductance, present only when one was adopted — it is the same value the `L` token reports. Where the token reads `L=0` the code has no `L`, because the estimate was rejected as unphysical or as too small to matter. |
+| | `R(RQ)(RQ)(RQ)(RQ)O` | A trailing `O` is the finite-length Warburg with a reflective boundary, the diffusion branch. Some other packages write this element `Wo`; it is the same element. Where the diffusion record is the composite of §3.6, its slow relaxation is the `(RQ)` immediately before the `O` — it is part of the circuit but is not a peak, so it is not in the parameter table. |
+| | | Every block is written `(RQ)`, never `(RC)`, even when the reported φ is exactly 1. A φ of 1.000 is the refinement resting on its upper bound rather than a measured ideal capacitor, and the notation does not make a claim the fit did not make. Read φ in the table, with the caveats of §3.5. |
+| | | The code describes what was extracted. **No circuit was searched for or selected** — the topology is fixed by the method and only the number of elements is chosen (§3.2). If you know this notation from a fitting program, that difference matters. |
+| **L** | `L=0` | No series inductance was removed — either none was detected, or its contribution was below 0.5 % of \|Z\| at the highest frequency. |
+| | `L=6.46e-07 H` | The inductance that was removed before the analysis. This is wiring, not the cell. |
+| **λ** | `λ=1.301 (auto)` | Smoothing strength of the regularised inversion, chosen at the L-curve corner of a 50-point scan. |
+| | `λ=0.5 (manual)` | The value you set in the panel was used instead. Larger smooths the DRT; smaller splits peaks. |
+| **ext** | `ext=LINEAR` | The spectrum was continued beyond the measured window by extending the tail in log-frequency, at both ends. |
+| | `ext=RC` | Continued by fitting a physical RC series, at both ends. |
+| | `ext=RC-LF/LINEAR-HF` | The two ends were continued differently. The token names the low-frequency choice first; the pattern is `<lf>-LF/<hf>-HF`. |
+| **Warburg** | `Warburg: none` | No diffusion element was fitted, because no diffusion tail was detected. |
+| | `Warburg: post-hoc` | A Warburg-open element was fitted to the excluded low-frequency region **after** the relaxation analysis. |
+| | `Warburg: joint` | The diffusion branch was fitted **together with** the relaxation basis inside the inversion, so the calculated DRT curve reproduces the low-frequency rise. |
+| | `Warburg: composite` | The excluded region needed a Warburg element **plus** a slow near-RC relaxation. Both are reported inside the Warburg record rather than as an extra peak. |
+| **Rb** | `Rb: 100%` | R-budget (§5.2): the reported elements carry this share of the DRT's resistance inside the fitting window. Inside 85–115 %, so the circuit accounts for the DRT it came from. |
+| | `Rb: ⚠ 117%` | Outside 85–115 %: the circuit and the DRT disagree about how much impedance the window holds — typically an element reaching past the measured window, or a shoulder the model does not carry. |
+| | `Rb: —` | Not available, because no peaks were reported for this spectrum. |
+| **KK** | `KK: PASS (0.02%)` | Kramers-Kronig gate (§5.1) passed; the figure is the residual RMS. The limits are 0.5 % RMS and 1.5 % peak, both as a fraction of \|Z\|. |
+| | `KK: ⚠ WARNING` | One or both limits were exceeded. See below for what the accompanying reason can say. |
+| | `KK: off` | The gate did not run. |
+
+**Two of these carry a variable explanation.**
+
+A **KK warning** names what failed, as one clause or both joined by `and`:
+
+```
+residual RMS 0.72% exceeds 0.5% of |Z|
+max point residual 5.07% exceeds 1.5% of |Z|
+```
+
+A **KK: off** names why the gate did not run: either `kk_gate_mode = Off`
+because you turned it off, or a reason the gate could not proceed — most often
+`too few points (N=6 < 8)`, below which the fit is under-determined.
+
+Percentages in these messages are of two kinds, and it is worth telling them
+apart: **0.5 %, 1.5 % and 85–115 % are fixed limits** built into the program,
+while the residuals, the ratio and the resistances are what your run produced.
+
+The peak count has a companion reading on the Nyquist panel, where each
+element is drawn as its own arc — see §4.3.
+
+### 4.3 Reading the element arcs on the Nyquist panel
+
+Alongside the two whole-spectrum curves, the Nyquist panel draws **one arc per
+extracted element**, in the colour that element's peak has in the DRT panel.
+The colour is the only link between the two panels, so an arc and a shaded
+peak of the same colour are the same element.
+
+Each arc is placed at the running total of resistance: the first starts at
+`R∞`, the next where it ends, and so on, so the chain spans `R∞` to the
+circuit's total resistance. That makes two things readable directly:
+
+*   the **width** of an arc is that element's `R`
+*   how **flattened** it is, is that element's `φ` — a perfect semicircle is
+    `φ = 1`, an ideal RC
+
+The legend adds `— M% overlap` to each. That figure answers one question:
+**may I read this arc on its own?** Near `0 %`, yes. At tens of percent, read
+its width and shape but not its position, because neighbouring elements are
+what put it where it is.
+
+Across the reference spectra the figure tracks how far apart the time
+constants are, which is what it is measuring:
+
+| Spectrum | Time constants apart | Overlap reported |
+|---|---|---|
+| `PEMFC` | 2.87 decades | 0 %, 0 % |
+| built-in example | 1.31 decades | 6 %, 13 % |
+| `SOFC` | 1.24 decades | 20 %, 21 %, 5 % |
+| `Ciucci/LIB_data_2` | 0.77 decades | 49 %, 25 %, 3 % |
+
+The built-in example sits deliberately in the middle. Its two time constants
+are 1.33 decades apart by construction: wider and it would stop showing what
+the ZARC basis is for, narrower and it would fall under the one-decade
+resolution limit and demonstrate a documented failure instead of ordinary
+operation.
+
+The last element of a chain always reports near zero. Nothing slower follows
+it, and everything faster has already contributed its full resistance — so
+its placement has nothing left to be wrong about.
+
+#### Why the arcs do not add up to the total curve
+
+They are not meant to. **The arcs decompose the circuit; the total curve is
+what the circuit predicts.** Those differ, for two reasons.
+
+**The total is a sum at each frequency; the chain is not.** Each arc sits at a
+fixed resistance offset, which assumes the faster elements have already given
+all their resistance and the slower ones none of theirs. That holds only when
+the time constants are far apart — and the overlap percentage is exactly how
+far from holding it is.
+
+**Each arc peaks at its own frequency, so heights do not add.** On
+`LIB_data_2` the three arcs reach `0.00136`, `0.00193` and `0.00528` — summing
+to `0.00858`, while the actual curve never exceeds `0.00567`. No single
+frequency has all three at their maximum, so adding the apexes overstates the
+curve by half.
+
+#### Why an arc can touch the axis where the total does not
+
+An arc meets the real axis at its own two limits, `ω → ∞` on the left and
+`ω → 0` on the right. Its imaginary part is zero there — **its own**, not the
+others'. At that same frequency the remaining elements still have imaginary
+parts, so the total is elsewhere.
+
+The junction between two arcs makes this concrete. On the built-in example,
+arc 1 ends and arc 2 begins at the same point, `x = 24,490 Ω`:
+
+| At that junction | The total at the same frequency |
+|---|---|
+| arc 1's right end is `ω → 0` | `x = 35,006 Ω`, `−Z_im = 3.3` |
+| arc 2's left end is `ω → ∞` | `x = 5,171 Ω`, `−Z_im = 2.0` |
+
+**The junction is not one frequency at all** — it is the low-frequency limit of
+one element and the high-frequency limit of the next, opposite ends of the
+sweep. The chain is joined in space, not in frequency, and its x-axis is
+accumulated resistance rather than a frequency coordinate.
+
+The two outer ends are the exception, and the only places the arcs and the
+total agree by construction: at `R∞` every element is at `ω → ∞`, and at
+`R∞ + ΣR` every element is at `ω → 0`. Those are the only frequencies where
+all of them are at a limit together.
+
 ---
 
 ## 5. Reading the diagnostics
 
-These are the messages you will actually meet. None of them stops a run — the
+These are the messages you will actually meet, in the prose the program writes
+to the log. For the compressed form of the same information — the one-line run
+summary and every token it can print — see §4.2.
+
+None of them stops a run — the
 program finishes and tells you what to distrust.
 
 ### 5.1 The Kramers-Kronig gate
@@ -295,11 +440,45 @@ this line belong to the discarded first pass.
 
 | Sheet | Contents |
 |---|---|
-| `Equivalent Circuit Parameters` | `R_inf`, then one row per peak: `R`, `Phi`, `Phi_deconv`, `CPE_Q`, `Tau`, `C_eff` |
+| `Equivalent Circuit Parameters` | `R_inf`, the circuit description code, and the inductance when one was adopted, all in row 1; the Warburg and slow-element scalars in row 2; then one row per peak: `R`, `Phi`, `Phi_deconv`, `CPE_Q`, `Tau`, `C_eff` — and, two rows under the table, the circuit drawn as a schematic |
 | `DRT_Spectrum` | `f_Hz`, `omega_rad_s`, `Tau_s`, `Log10_Tau`, `DRT_G_tau`, one `Peak_N_G_tau` column per deconvolved peak, and `Peak_fit_sum_G_tau` — their sum, which is what you compare against `DRT_G_tau` to judge the fit |
 | `Simulated_EIS` | `f_Hz`, `omega_rad_s`, measured `Z_re`/`Z_im`, the NNLS reconstruction, and the equivalent-circuit curve |
 
-The plot is saved alongside as a PNG.
+The schematic under the parameter table carries **element names only**. An
+`L` box appears at the left when an inductance was adopted, matching the
+leading `L` of the code; where none was, neither shows it. `R1` and
+`CPE1` are the `R` and `CPE_Q` of the `Peak 1` row directly above it, so the
+picture is an index into the table rather than a second copy of it. Where the
+diffusion record is the composite of §5.4, its slow element appears as
+`R_slow`/`CPE_slow` — it is part of the circuit but is not a peak, so it has no
+number and no table row of its own; its values are the `Warburg slow ZARC`
+cells in row 2. The name is spelled out because `Rs` is normally read as the
+*series* resistance, which in this diagram is the `R∞` box beside it. A line
+under the drawing says where that element came from:
+
+> `R_slow, CPE_slow: a slow relaxation inside the low-frequency region the
+> diffusion tail-cut excluded`
+
+That is the one thing the picture cannot show. The block sits in the span the
+tail-cut removed, so without the line it reads as a relaxation measured
+alongside the numbered ones.
+
+**Every box in the picture has its value on the same sheet.** `L` is in `F1`,
+`R∞` in `B1`, each numbered element is a table row, `R_slow` is the
+`Warburg slow ZARC` cells of row 2, and `Wo` is `Warburg R_W` / `Tau_W` /
+`C_lim`. The picture indexes the sheet; nothing drawn is unaccounted for.
+
+The diffusion box is labelled `Wo`, the element name a circuit editor uses. The
+code in row 1 writes the same element as `O`, Boukamp's letter. They are one
+element in two notations.
+
+If the line **`diffusion knee not resolved`** appears under that box, the fit
+could not locate the knee of the diffusion branch: `R_W` and `τ_W` are what the
+search returned, but the limiting capacitance derived from them would be a ratio
+of two meaningless numbers, so it is not reported. The spectrum did not
+determine it; see §5.4.
+
+The plot is saved alongside as a PNG, and the schematic as a second PNG.
 
 ---
 

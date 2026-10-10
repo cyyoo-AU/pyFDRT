@@ -4,7 +4,7 @@ import argparse
 
 from drt_pipeline import DRTAnalyzer
 from pyfdrt.io.drt_exporter import export_results_to_excel
-from pyfdrt.io.drt_plotter import save_drt_plots
+from pyfdrt.io.drt_plotter import save_circuit_diagram, save_drt_plots
 
 
 def main():
@@ -85,12 +85,21 @@ def main():
 
             # 2. Export to Excel
             excel_path = os.path.join(args.output_dir, f"{base_name}_results.xlsx")
-            export_results_to_excel(excel_path, optimizer, results, logger=print)
+            export_results_to_excel(excel_path, optimizer, results, logger=print,
+                                    inductance=res.get('L_val', 0.0))
 
             # 3. Save the plot image
             image_path = os.path.join(args.output_dir, f"{base_name}_plot.png")
             save_drt_plots(image_path, optimizer, results, original_raw_data=raw_data)
             print(f"-> [OK] Plot saved: {image_path}")
+
+            # 4. Save the circuit schematic. Its own file, not a fourth panel:
+            # the schematic is one wide, short row and a quarter-width column
+            # would compress it to illegibility (drt-io.md 6.1).
+            circuit_path = os.path.join(args.output_dir, f"{base_name}_circuit.png")
+            save_circuit_diagram(circuit_path, results,
+                                 inductance=res.get('L_val', 0.0))
+            print(f"-> [OK] Circuit saved: {circuit_path}")
 
             succeeded.append(fname)
         except Exception as e:

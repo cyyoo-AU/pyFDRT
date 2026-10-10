@@ -1,8 +1,10 @@
+import io
 import os
 import numpy as np
 import pandas as pd
 from typing import Callable, Optional
 from ..core.DRTOptimizer import DRTOptimizer
+from .circuit_cdc import circuit_cdc
 
 
 class ExcelExportError(Exception):
@@ -19,7 +21,43 @@ class ExcelExportError(Exception):
         super().__init__(f"Failed to save Excel to '{file_path}': {message}")
 
 
-def export_results_to_excel(file_path: str, optimizer: DRTOptimizer, results: dict, logger: Optional[Callable[[str], None]] = None):
+def _embed_circuit_diagram(worksheet, results, log, inductance=0.0):
+    """Put the circuit schematic under the parameter table (drt-io.md 5.1).
+
+    The picture goes on the same sheet as the numbers it describes, two rows
+    below the table, so a reader sees the circuit and its parameters together
+    without changing sheet. It carries element names only - the values are the
+    rows directly above it, and a second copy in the picture would be a second
+    thing to keep in agreement.
+
+    Written last and reported rather than raised on failure: embedding needs
+    Pillow, which openpyxl requires for pictures but does not declare, and a
+    workbook without a picture is worth far more than no workbook.
+    """
+    anchor_row = worksheet.max_row + 2
+    try:
+        import matplotlib.pyplot as plt
+        from openpyxl.drawing.image import Image as _XLImage
+
+        from .drt_plotter import _circuit_figure
+
+        fig, _ax = _circuit_figure(results, inductance)
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format='png', facecolor='white')
+        plt.close(fig)
+        buffer.seek(0)
+        image = _XLImage(buffer)
+        image.anchor = f'A{anchor_row}'
+        worksheet.add_image(image)
+    except Exception as e:                       # pragma: no cover - guarded path
+        worksheet[f'A{anchor_row}'] = 'Circuit diagram'
+        worksheet[f'B{anchor_row}'] = f'not embedded ({type(e).__name__})'
+        log(f"-> [Warning] Circuit diagram not embedded: {e}")
+
+
+def export_results_to_excel(file_path: str, optimizer: DRTOptimizer, results: dict,
+                            logger: Optional[Callable[[str], None]] = None,
+                            inductance: float = 0.0):
     """
     Save the DRT analysis and optimization results to an Excel file.
 
@@ -139,8 +177,27 @@ def export_results_to_excel(file_path: str, optimizer: DRTOptimizer, results: di
                     ws['J2'] = float(sz['Tau'])
                     ws['K2'] = 'Warburg slow ZARC Phi'
                     ws['L2'] = float(sz['Phi'])
+                    # C_eff for parity with the peak table, so every element of
+                    # the circuit the schematic draws can be read off this sheet.
+                    if sz.get('C_eff') is not None:
+                        ws['M2'] = 'Warburg slow ZARC C_eff (F)'
+                        ws['N2'] = float(sz['C_eff'])
+            # The circuit description code is a spectrum-level scalar like
+            # R_inf, so it joins row 1 rather than earning a sheet. C1/D1
+            # leaves the table's start at row 3 untouched (drt-io.md 5.1).
+            ws['C1'] = 'Circuit (CDC)'
+            ws['D1'] = circuit_cdc(results, inductance)
+            # The inductance the preprocessing adopted. It entered the code and
+            # the schematic in task #140's follow-up but had no cell, so the
+            # sheet showed a leading `L` with no value behind it (task #143).
+            # Written only when one was adopted: a zero is the gates rejecting
+            # the estimate, and a `0` here would read as a measured zero.
+            if inductance and inductance > 0:
+                ws['E1'] = 'L (H)'
+                ws['F1'] = float(inductance)
             df_drt.to_excel(writer,    sheet_name='DRT_Spectrum',   index=False)
             df_sim.to_excel(writer,    sheet_name='Simulated_EIS',  index=False)
+            _embed_circuit_diagram(ws, results, log, inductance)
 
         log(f"-> [OK] Excel saved: {file_path}")
         return True
