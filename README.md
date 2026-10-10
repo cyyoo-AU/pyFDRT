@@ -3,8 +3,8 @@
   <img src="assets/pyFDRT_logo.png" alt="pyFDRT" width="420">
 </picture>
 
-**Fourier-transform Distribution of Relaxation Times (DRT) analysis for
-electrochemical impedance spectroscopy.**
+**An open-source Python tool for Fourier-transform analysis of the
+distribution of relaxation times in electrochemical impedance spectra.**
 
 A desktop application and a batch command line for turning an impedance
 spectrum into a distribution of relaxation times and an equivalent circuit —
@@ -86,21 +86,23 @@ repository, so a fix has to start there instead.
 
 ## Citing
 
-The accompanying paper has been submitted to the *Bulletin of the Korean
-Chemical Society*.
+The accompanying paper is in press at the *Bulletin of the Korean Chemical
+Society*.
 
 ```bibtex
 @article{pyFDRT2026,
   author  = {Yoo, Chung-Yul and Park, Jaeku and Kim, Jeongjin},
-  title   = {pyFDRT: Fourier-transform Distribution of Relaxation Times (DRT)
-             analysis for Electrochemical Impedance Spectroscopy},
+  title   = {pyFDRT: an open-source Python tool for Fourier-transform
+             analysis of the distribution of relaxation times in
+             electrochemical impedance spectra},
   journal = {Bulletin of the Korean Chemical Society},
   year    = {2026},
-  note    = {submitted}
+  doi     = {10.1002/bkcs.70232},
+  note    = {in press}
 }
 ```
 
-Update the entry with the DOI, volume and pages once the paper is accepted.
+Add the volume and pages to the entry once the issue is assigned.
 
 ## Authors and contact
 
