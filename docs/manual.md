@@ -537,24 +537,26 @@ see the note in §1.
 
 ## 9. Citing pyFDRT
 
-The accompanying paper is in press at the *Bulletin of the Korean Chemical
-Society*:
+The accompanying paper is published, open access, in the *Bulletin of the
+Korean Chemical Society* (Early View, first published 13 October 2026),
+<https://onlinelibrary.wiley.com/doi/10.1002/bkcs.70232>:
 
-> Yoo, C.-Y., Park, J., & Kim, J. pyFDRT: an open-source Python tool for
+> Yoo, C.-Y., Park, J., & Kim, J. pyFDRT: An open-source Python tool for
 > Fourier-transform analysis of the distribution of relaxation times in
 > electrochemical impedance spectra. *Bulletin of the Korean Chemical Society*
-> (2026), in press. doi:10.1002/bkcs.70232
+> (2026), Early View. doi:10.1002/bkcs.70232
 
 ```bibtex
 @article{pyfdrt,
   author  = {Yoo, Chung-Yul and Park, Jaeku and Kim, Jeongjin},
-  title   = {pyFDRT: an open-source Python tool for Fourier-transform
+  title   = {pyFDRT: An open-source Python tool for Fourier-transform
              analysis of the distribution of relaxation times in
              electrochemical impedance spectra},
   journal = {Bulletin of the Korean Chemical Society},
   year    = {2026},
   doi     = {10.1002/bkcs.70232},
-  note    = {in press}
+  url     = {https://onlinelibrary.wiley.com/doi/10.1002/bkcs.70232},
+  note    = {Early View, open access}
 }
 ```
 

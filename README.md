@@ -92,19 +92,21 @@ repository, so a fix has to start there instead.
 
 ## Citing
 
-The accompanying paper is in press at the *Bulletin of the Korean Chemical
-Society*.
+The accompanying paper is published, open access, in the *Bulletin of the
+Korean Chemical Society* (Early View, first published 13 October 2026):
+<https://onlinelibrary.wiley.com/doi/10.1002/bkcs.70232>
 
 ```bibtex
 @article{pyFDRT2026,
   author  = {Yoo, Chung-Yul and Park, Jaeku and Kim, Jeongjin},
-  title   = {pyFDRT: an open-source Python tool for Fourier-transform
+  title   = {pyFDRT: An open-source Python tool for Fourier-transform
              analysis of the distribution of relaxation times in
              electrochemical impedance spectra},
   journal = {Bulletin of the Korean Chemical Society},
   year    = {2026},
   doi     = {10.1002/bkcs.70232},
-  note    = {in press}
+  url     = {https://onlinelibrary.wiley.com/doi/10.1002/bkcs.70232},
+  note    = {Early View, open access}
 }
 ```
 
