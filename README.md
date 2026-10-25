@@ -120,4 +120,20 @@ Please write to <cyyoo@ajou.ac.kr> for academic and industrial collaboration.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Copyright (c) 2026 Chung-Yul Yoo, Jaeku Park, Jeongjin Kim.
+
+pyFDRT is dual-licensed:
+
+- **GNU Affero General Public License v3.0** ([LICENSE](LICENSE)). You may
+  use, modify and redistribute pyFDRT, commercially or not, provided that
+  anything you distribute that contains it, and any modified version you let
+  others use over a network, is made available in source form under the same
+  licence.
+- **Commercial licence.** Use outside those terms, for example in a
+  closed-source product or in a hosted service whose source is not published,
+  requires a separate licence from the authors. Please write to
+  <cyyoo@ajou.ac.kr>.
+
+Earlier commits of this repository (version 1.0, up to commit `6182888`)
+were released under the MIT licence; copies obtained under it keep that
+licence.
