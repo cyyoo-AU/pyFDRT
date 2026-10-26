@@ -133,7 +133,3 @@ pyFDRT is dual-licensed:
   closed-source product or in a hosted service whose source is not published,
   requires a separate licence from the authors. Please write to
   <cyyoo@ajou.ac.kr>.
-
-Earlier commits of this repository (version 1.0, up to commit `6182888`)
-were released under the MIT licence; copies obtained under it keep that
-licence.
