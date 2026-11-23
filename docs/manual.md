@@ -538,13 +538,13 @@ see the note in §1.
 ## 9. Citing pyFDRT
 
 The accompanying paper is published, open access, in the *Bulletin of the
-Korean Chemical Society* (Early View, first published 13 October 2026),
+Korean Chemical Society* **2026**, *47*, 1463–1475,
 <https://onlinelibrary.wiley.com/doi/10.1002/bkcs.70232>:
 
 > Yoo, C.-Y., Park, J., & Kim, J. pyFDRT: An open-source Python tool for
 > Fourier-transform analysis of the distribution of relaxation times in
 > electrochemical impedance spectra. *Bulletin of the Korean Chemical Society*
-> (2026), Early View. doi:10.1002/bkcs.70232
+> **2026**, *47*, 1463–1475. doi:10.1002/bkcs.70232
 
 ```bibtex
 @article{pyfdrt,
@@ -554,10 +554,11 @@ Korean Chemical Society* (Early View, first published 13 October 2026),
              electrochemical impedance spectra},
   journal = {Bulletin of the Korean Chemical Society},
   year    = {2026},
+  volume  = {47},
+  number  = {11},
+  pages   = {1463--1475},
   doi     = {10.1002/bkcs.70232},
   url     = {https://onlinelibrary.wiley.com/doi/10.1002/bkcs.70232},
-  note    = {Early View, open access}
+  note    = {open access}
 }
 ```
-
-The volume and pages follow once the issue is assigned.

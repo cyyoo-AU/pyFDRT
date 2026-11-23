@@ -93,7 +93,7 @@ repository, so a fix has to start there instead.
 ## Citing
 
 The accompanying paper is published, open access, in the *Bulletin of the
-Korean Chemical Society* (Early View, first published 13 October 2026):
+Korean Chemical Society* **2026**, *47*, 1463–1475:
 <https://onlinelibrary.wiley.com/doi/10.1002/bkcs.70232>
 
 ```bibtex
@@ -104,13 +104,14 @@ Korean Chemical Society* (Early View, first published 13 October 2026):
              electrochemical impedance spectra},
   journal = {Bulletin of the Korean Chemical Society},
   year    = {2026},
+  volume  = {47},
+  number  = {11},
+  pages   = {1463--1475},
   doi     = {10.1002/bkcs.70232},
   url     = {https://onlinelibrary.wiley.com/doi/10.1002/bkcs.70232},
-  note    = {Early View, open access}
+  note    = {open access}
 }
 ```
-
-Add the volume and pages to the entry once the issue is assigned.
 
 ## Authors and contact
 
